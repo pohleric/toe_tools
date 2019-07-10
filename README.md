@@ -1,7 +1,7 @@
-# ToEtools
-# A non-parametric method to calculate the emergence of climate signals
+# ToE_tools
+## A non-parametric method to calculate the Time of Emergence of climate signals
 #
-## Workshop initiative by IPSL-Labex with contributions from:
+### Workshop initiative by IPSL-Labex with contributions from:
  - Eric Pohl
  - Christophe Grenier
  - Marco Gaetani
@@ -12,7 +12,7 @@
 
 and various other inputs through workshops
 
-## Introduction
+### Introduction
 Tool collection to calculate the emergence of climate signals from CRU-NCEP and CMIP5 data. The base method to define
 the emergence is the hellinger distance that describes the dissimilarity of two probability density functions (PDFs)
 and can be understood as their geometrical overlap. A distance of 0 correponds to a full overlap (= same PDFs) and a
@@ -47,7 +47,7 @@ The 7 step workflow is:
     individual models. Models can be subsetted otionally with the derived best perfroming models from the previous step.
     Currently hardcoded (gis.py) for the case of the Lena catchment
 
-## ToE Metrics:
+### ToE Metrics:
 - Hellinger Distance:
     ```
         def hellinger(p, q, bins):
@@ -67,13 +67,13 @@ The 7 step workflow is:
 
 - There are already some versions included that allow for using histograms instead of calculating the KDE-PDF which might save a lot of time
 
-## Dependencies:
+### Dependencies:
 Tested on both python 2.7 and 3.5. Use of 2.7 is encouraged for plotting purposes.
 Install all needed python packages with Anaconda (https://www.anaconda.com/download/) in an environment:
 
 ```conda create -n ToE_tools python=2.7 gdal netcdf4 proj4 tqdm pandas matplotlib basemap basemap-data-hires pillow scipy```
 
-## Issues:
+### Issues:
 All but the map plotting functions (using Basemap) work on both python 2.7.x and 3.5.x
 Basemap has some issues and some manual adjustments of the code might be needed to get it running.
 In the installation path of Basemap you can find the `__init__.py`:
@@ -92,7 +92,7 @@ os.environ["PROJ_LIB"] = proj_lib
 ```
 This is hopefully fixing the issues and allows to use basemap.
 
-## How to:
+### How to:
 A simple example in the subdirectory `example/` is provided for an example climate model simulation file in text format with 4 columns (=4 pixels)
 Simply execute line by line in the script or run it as a whole. It will calculate the Hellinger distance for a given set of window widths and split year that you can change.
 
