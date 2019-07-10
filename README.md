@@ -83,11 +83,9 @@ Basemap has some issues and some manual adjustments of the code might be needed 
     One particular issue is the 'proj' library. An issue is fixed by setting the environmental variable '$PROJ_LIB'
     within python to the shared library folder of your environment. The code for this can be found in the header of the
     file 'gis.py' and should be according to:
-
-    - env_path = '/homel/epohl/anaconda2/envs/ToE_tools/share'
+    `env_path = '<path_to_your>/anaconda/envs/ToE_tools/share'`
     - proj_lib = os.path.join(env_path, 'proj')
     - os.environ["PROJ_LIB"] = proj_lib
-
     This is hopefully fixing the issues and allows to use basemap.
 
 ## How to:
