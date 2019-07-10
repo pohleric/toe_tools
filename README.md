@@ -18,11 +18,11 @@ the emergence is the hellinger distance that describes the dissimilarity of two 
 and can be understood as their geometrical overlap. A distance of 0 correponds to a full overlap (= same PDFs) and a
 distance of 1 to no overlap (= fully emerged PDFs).
 
-The workflow is divided into 7 main steps outlined below. The corresponding scripts are in the folder scripts but need
-to be copied into the main directory ("ToE_tools") as they will read and write from/into the hardcoded folders "data"
-and "figures"
+The workflow is divided into 7 main steps outlined below. The corresponding scripts are in the folder `scripts/` but need
+to be copied into the main directory (`ToE_tools`) as they will read and write from/into the hardcoded folders `data/`
+and `figures/`
 
-A working example with a data sample is provided to go through the key functions of the toolbox.
+A working example with a data sample is provided to go through the key functions of the toolbox in the folder `example/`.
 The example will start at point (3) where CRUNCEP and CMIP5 model simulations are in a pandas dataframe format. See
 below on how to run the example.
 
@@ -69,7 +69,8 @@ The 7 step workflow is:
 
 ### Dependencies:
 Tested on both python 2.7 and 3.5. Use of 2.7 is encouraged for plotting purposes.
-Install all needed python packages with Anaconda (https://www.anaconda.com/download/) in an environment:
+Anaconda (https://www.anaconda.com/download/) is recommended to install the needed packages for the toolbox.
+Download and install Anaconda and then install the packages with Anaconda in an environment:
 
 ```conda create -n ToE_tools python=2.7 gdal netcdf4 proj4 tqdm pandas matplotlib basemap basemap-data-hires pillow scipy```
 
@@ -78,7 +79,9 @@ All but the map plotting functions (using Basemap) work on both python 2.7.x and
 Basemap has some issues and some manual adjustments of the code might be needed to get it running.
 In the installation path of Basemap you can find the `__init__.py`:
 
-`<path_to_your>/anaconda/envs/<environment-name>/lib/python2.7/site-packages/mpl_toolkits/basemap/`
+`<path_to_your>/anaconda/envs/ToE_tools/lib/python2.7/site-packages/mpl_toolkits/basemap/`
+
+*(where `<path_to_your>` is the parent directory where you have installed Anaconda)*
 
 It needs to have all instances of `ax.get_axis_bgcolor()` replaced by `ax.get_fc()`
 Furthermore, there will be a flood of warning messages coming at you.
