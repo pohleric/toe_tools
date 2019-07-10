@@ -76,18 +76,20 @@ Install all needed python packages with Anaconda (https://www.anaconda.com/downl
 ## Issues
 All but the map plotting functions (using Basemap) work on both python 2.7.x and 3.5.x
 Basemap has some issues and some manual adjustments of the code might be needed to get it running:
-    in the installation path of Basemap you can find the ```__init__.py```:
+    in the installation path of Basemap you can find the `__init__.py`:
+
     ... /anaconda/envs/<environment-name>/lib/python2.7/site-packages/mpl_toolkits/basemap/
-    It needs to have all instances of ```ax.get_axis_bgcolor()``` replaced by ```ax.get_fc()```
+
+    It needs to have all instances of `ax.get_axis_bgcolor()` replaced by `ax.get_fc()`
     Furthermore, there will be a flood of warning messages coming at you.
-    One particular issue is the 'proj' library. An issue is fixed by setting the environmental variable '$PROJ_LIB'
+    One particular issue is the 'proj' library. An issue is fixed by setting the environmental variable `$PROJ_LIB`
     within python to the shared library folder of your environment. The code for this can be found in the header of the
     file 'gis.py' and should be according to:
-
-    `env_path = '<path_to_your>/anaconda/envs/ToE_tools/share'`
-    - proj_lib = os.path.join(env_path, 'proj')
-    - os.environ["PROJ_LIB"] = proj_lib
-
+```
+    env_path = '<path_to_your>/anaconda/envs/ToE_tools/share'
+    proj_lib = os.path.join(env_path, 'proj')
+    os.environ["PROJ_LIB"] = proj_lib
+```
     This is hopefully fixing the issues and allows to use basemap.
 
 ## How to:
