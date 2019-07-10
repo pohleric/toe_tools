@@ -99,7 +99,7 @@ This is hopefully fixing the issues and allows to use basemap.
 A simple example in the subdirectory `example/` is provided for an example climate model simulation file in text format with 4 columns (=4 pixels)
 Simply execute line by line in the script or run it as a whole. It will calculate the Hellinger distance for a given set of window widths and split year that you can change.
 
-In order to use the full functionality of the toolbox, *copy the scripts within the folder `scripts/` into the main directory* and follow the numbering as explained in the 7 spte workflow.
+In order to use the full functionality of the toolbox, *copy the scripts within the folder `scripts/` into the main directory* and follow the numbering as explained in the 7 point workflow.
 
 Always take care that in the aggregation process (from monthly to annual) of intensive and extensive variables different aggreation methods are needed (sum vs. mean)
 One should make sure the output is as expected!
