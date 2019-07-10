@@ -96,20 +96,22 @@ This is hopefully fixing the issues and allows to use basemap.
 A simple example in the subdirectory `example/` is provided for an example climate model simulation file in text format with 4 columns (=4 pixels)
 Simply execute line by line in the script or run it as a whole. It will calculate the Hellinger distance for a given set of window widths and split year that you can change.
 
-In order to use the full functionality of the toolbox, copy the scripts within the folder `scripts/` into the main directory and follow the numberingas explained in the 7 spte workflow.
+In order to use the full functionality of the toolbox, *copy the scripts within the folder `scripts/` into the main directory* and follow the numberingas explained in the 7 spte workflow.
 
 Always take care that in the aggregation process (from monthly to annual) of intensive and extensive variables different aggreation methods are needed (sum vs. mean)
-
 One should make sure the output is as expected!
 
-In order to make the directory structure as easy as possible there is an extra script in the actual toolbox folder. In `toe_tools/paths.py` you will find the names of all needed folders and an example configuration. Below the list of folders you will see a commented section that you can run to create the folder structure that is defined in the file. Different folder names are certainly possible but must remain constant during the workflow.
+In order to make the directory structure as easy as possible there is an extra script in the actual toolbox folder.
+In `toe_tools/paths.py` you will find the names of all needed folders and an example configuration.
+Below the list of folders you will see a commented section that you can run to create the folder structure that is defined in the file.
+Different folder names are certainly possible but must remain constant during the workflow.
 
 #
 The figure output path is hardcoded to be in your `figures/` subfolder
 In any case, if you want to plot the results you will have to change several parameters in the `gis.py` functions.
 The current plots are with some shapefiles that are located in the `data/` folder and should help you figure out how to adjust the scripts to your needs.
 The current projection is set to geographical to allow for plotting any region of the world. 
-Figures from the manuscript are plotted in Lambert-Conform-Conical projection; the plot commands to do so are in the "gis.py" file and can be re-enabled.
+Figures from the manuscript are plotted in Lambert-Conform-Conical projection; the plot commands to do so are in the `gis.py` file and can be re-enabled.
 Some playing with Basemap might help you to adapt the functions to your need. You can do it!!!
 
 # 
