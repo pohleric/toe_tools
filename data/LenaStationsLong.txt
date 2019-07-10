@@ -1,0 +1,6 @@
+ID name lon lat
+6 24641 Viljujsk 121.62 63.78
+15 24944 Olekminsk 120.42 60.4
+17 24959 Jakutsk 129.72 62.02
+18 24966 Ust'-Maja 134.45 60.38
+24 30230 Kirensk 108.07 57.77
