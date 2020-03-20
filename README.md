@@ -119,4 +119,6 @@ Some playing with Basemap might help you to adapt the functions to your need. Yo
 
 # 
 A manuscript describing the method in detail and showcasing the application is open-access available under:
-xxx
+
+https://doi.org/10.5194/hess-2019-360
+
