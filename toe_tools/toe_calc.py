@@ -267,6 +267,7 @@ def calc_run_hellinger_posneg_hist(time_seq, tar_values, ref_values, ww, tmp_xse
     local_sign = list()
 
     for x in window_pad_pd(time_seq_num, ww):
+
         tar_h_freq, tar_h_div = np.histogram(tar_values.loc[list(x)], bins=tmp_xseq)
         tmp_pdf_list = tar_h_freq / (np.sum(tar_h_freq) * 1.0)
         tmp_h, tmp_s = hellinger_hist(p=tmp_pdf_list, q=ref_values, bins=bin_centers)
@@ -325,6 +326,107 @@ def calc_run_hellinger_hist(time_seq, tar_values, ref_values, ww, tmp_xseq, bin_
         tar_h_freq, tar_h_div = np.histogram(tar_values.loc[list(x)], bins=tmp_xseq)
         tmp_pdf_list = tar_h_freq / (np.sum(tar_h_freq) * 1.0)
         tmp_h = hellinger_hist(p=tmp_pdf_list, q=ref_values, bins=bin_centers)
+        local_f.append(tmp_h)
+    return local_f, local_sign
+
+
+def calc_run_ks_hist(time_seq, tar_values, ref_values, ww, bin_centers):
+    """
+    calculate the Kolmogorov-Smirnoff distance: sup|| CDF_p(x) - CDF_q(x) ||
+    :param tar_values: temeprature values of target
+    :param ww: window width
+    :param ref_values: the values of the reference period
+    :param tmp_xseq: the series of x-values for which the PDF is evaluted for
+    :param: bin_centers: as tmp_xseq (the limits of bins) but for the centers (n-1)
+    :param bin_centers: as tmp_xseq (the limits of bins) but for the centers (n-1)
+    :return: KS distance for each time step used
+    """
+    # time_seq = y_times_tar_ww
+    # tar_values = y_tar_ww
+    # ref_values = ref_pdf_list
+    # ww = ww
+    # tmp_xseq = tmp_xseq
+    # bin_centers = tmp_xseq_centers
+
+    # make time_seq indexed to be used with window width
+    # time_seq_num = np.arange(time_seq.shape[0])
+    time_seq_num = time_seq
+
+    def ks_dist(p, q):
+        """
+        :param p: probabilities of empirical cumulative density function (based on histogram) for distribution p
+        :param q: probabilities of empirical cumulative density function (based on histogram) for distribution q
+        :return: maximum distance
+        """
+        # bins = x1
+        # p = p1
+        # q = p2
+        ks = np.max(np.abs(p - q))
+        return ks
+
+    if ww % 2 == 0:
+        ww = ww + 1
+
+    local_f = list()
+    local_sign = list()
+
+    for x in window_pad_pd(time_seq_num, ww):
+        tar_h_freq, tar_h_div = np.histogram(tar_values.loc[list(x)], bins=bin_centers)
+        tmp_pdf_list = np.cumsum(tar_h_freq) / (np.sum(tar_h_freq) * 1.0)
+        tmp_h = ks_dist(p=tmp_pdf_list, q=ref_values)
+        local_f.append(tmp_h)
+    return local_f, local_sign
+
+
+def calc_run_ks_2samp(time_seq, tar_values, ref_values, ww):
+    """
+    calculate the Kolmogorov-Smirnoff distance: sup|| CDF_p(x) - CDF_q(x) ||
+    :param tar_values: temeprature values of target
+    :param ww: window width
+    :param ref_values: the values of the reference period
+    :param tmp_xseq: the series of x-values for which the PDF is evaluted for
+    :param: bin_centers: as tmp_xseq (the limits of bins) but for the centers (n-1)
+    :param bin_centers: as tmp_xseq (the limits of bins) but for the centers (n-1)
+    :return: KS distance for each time step used
+    """
+
+    # use ks_2samp
+    from scipy.stats import ks_2samp
+
+    # time_seq = y_times_tar_ww
+    # tar_values = y_tar_ww
+    # ref_values = ref_pdf_list
+    # ww = ww
+    # tmp_xseq = tmp_xseq
+    # bin_centers = tmp_xseq_centers
+
+    # make time_seq indexed to be used with window width
+    # time_seq_num = np.arange(time_seq.shape[0])
+    time_seq_num = time_seq
+
+    # def ks_dist(p, q):
+    #     """
+    #     :param p: probabilities of empirical cumulative density function (based on histogram) for distribution p
+    #     :param q: probabilities of empirical cumulative density function (based on histogram) for distribution q
+    #     :return: maximum distance
+    #     """
+    #     # bins = x1
+    #     # p = p1
+    #     # q = p2
+    #     ks = np.max(np.abs(p - q))
+    #     return ks
+
+    if ww % 2 == 0:
+        ww = ww + 1
+
+    local_f = list()
+    local_sign = list()
+
+    for x in window_pad_pd(time_seq_num, ww):
+        tmp_p = tar_values.loc[list(x)]
+        tmp_q = ref_values
+        tmp_h = ks_2samp(tmp_p, tmp_q)
+        # tmp_h = ks_dist(p=tmp_pdf_list, q=ref_values)
         local_f.append(tmp_h)
     return local_f, local_sign
 
@@ -413,7 +515,8 @@ def calc_overlap(pd_dataframe, ww, precision, time_start, time_split, time_end, 
     """
     #
     # # pd_dataframe = ds_ref
-    # pd_dataframe= pd_df
+    # # pd_dataframe= pd_df
+    # pd_dataframe = new_data_pd
     # ww = WW
     # precision = precision
     # time_start = XMIN
@@ -496,7 +599,213 @@ def calc_overlap(pd_dataframe, ww, precision, time_start, time_split, time_end, 
     return OUT_overlap_pd, OUT_overlap_pd_sign
 
 
-def calc_overlap_hist(pd_dataframe, ww, precision, time_start, time_split, time_end, posneg=True, crop=True):
+def calc_ks_distance(pd_dataframe, ww, precision, time_start, time_split, time_end, crop=True, autobin=False):
+    """
+    Calculate the Hellinger distance between reference (divided at time_split) and target period
+
+    :param pd_dataframe: input pandas dataframe that is split into target and reference parts
+    :param ww: window width
+    :param precision: the number of points to evaluate the PDF
+    :param time_start: start of series
+    :param time_split: where to split the series
+    :param time_end: where to stop
+    :param crop: set values at half window size at the beginning and end of the time series to NaN
+    :param autobin: automatically determine bin number and bin sizes
+    :return: the hellinger distances of each target series time step with respect to the reference, and the sign
+    """
+    #
+    # pd_dataframe = new_data_pd
+    # ww = WW
+    # precision = precision
+    # time_start = XMIN
+    # time_split = XSPLIT
+    # time_end = XMAX
+    # autobin = True
+
+
+    # make copy .. some issues before without ...
+    ts_index = pd_dataframe.index
+    t_2d_ann_pd = copy(pd_dataframe)
+    OUT_overlap_pd = copy(pd.DataFrame(t_2d_ann_pd))
+    OUT_overlap_pd[:] = np.NaN
+    OUT_overlap_pd_sign = copy(pd.DataFrame(t_2d_ann_pd))
+    OUT_overlap_pd_sign[:] = np.NaN
+    # get they column keys (lat/lon)
+    RowCols = t_2d_ann_pd.keys()
+
+    # RowCol loop; go through the keys of pandas dataframe that are the row and column indices
+    for RowCol in RowCols:
+        # RowCol = u'0061.00113.0'
+        # all
+        y_all = t_2d_ann_pd[RowCol].values
+
+        # check if there is data; some pixels are only NA
+        if np.isnan(y_all).all():
+            continue
+
+        # check if every data record is 0
+        if (y_all == 0).all():
+            continue
+
+        # reference
+        y_ref = t_2d_ann_pd[RowCol].ix[time_start:time_split].values
+        if np.isnan(y_ref).all():
+            continue
+
+        # target
+        y_tar = t_2d_ann_pd[RowCol].ix[time_split:time_end].values
+
+        # target - half window
+        y_tar_ww = t_2d_ann_pd[RowCol].ix[str(int(time_split.split('-')[0]) - int(ww / 2)) + '-01-01':time_end]
+        y_times_tar_ww = t_2d_ann_pd[RowCol].ix[
+                         str(int(time_split.split('-')[0]) - int(ww / 2)) + '-01-01':time_end].index
+        if np.isnan(y_tar).all():
+            continue
+
+        # get the values for evaluation
+        ybnds = x_range(y_all, stretch=1)
+        # get the values for evaluation
+        if autobin:
+            # VERSION 1:
+            # for the autmoatic bin size determination:
+            # find the increment of the reference period and use this increment
+            # to generate a seq from min to max y value
+            _, tmp_bin_cent = np.histogram(y_ref)
+            tmp_bin_inc = np.diff(tmp_bin_cent).mean()
+            tmp_xseq_steps_n = np.diff(ybnds[0:2]) / tmp_bin_inc
+            tmp_xseq = np.linspace(ybnds[0], ybnds[1], tmp_xseq_steps_n)
+            # --- Version 1 is problematic for HD --- #
+
+            # # VERSION 2:
+            # # for the autmoatic bin size determination:
+            # # find the increment of the reference period and use this increment
+            # # to generate a seq from min to max y value
+            # _, tmp_bin_cent = np.histogram(y_all)
+            # tmp_bin_inc = np.diff(tmp_bin_cent).mean()
+            # tmp_xseq_steps_n = np.diff(ybnds[0:2]) / tmp_bin_inc
+            # tmp_xseq = np.linspace(ybnds[0], ybnds[1], tmp_xseq_steps_n)
+
+        else:
+            tmp_xseq = np.linspace(ybnds[0], ybnds[1], precision)
+            # tmp_xseq_centers = tmp_xseq[0:-1] + ((ybnds[1] - ybnds[0]) / precision)
+
+
+        ref_h_freq, _ = np.histogram(y_ref, bins=tmp_xseq)
+        ref_pdf_list = ref_h_freq / (np.sum(ref_h_freq) * 1.0)
+        ref_cdf_list = np.cumsum(ref_pdf_list)
+
+        # tar_h_freq, _ = np.histogram(y_tar, bins=tmp_xseq)
+        # tar_pdf_list = tar_h_freq / (np.sum(tar_h_freq) * 1.0)
+        # tar_cdf_list = np.cumsum(tar_pdf_list)
+
+        # dist_ks = np.nanmax(np.abs(tar_cdf_list - ref_cdf_list))
+        dist_ks, dist_ks_sign = calc_run_ks_hist(time_seq=y_times_tar_ww,
+                                                 tar_values=y_tar_ww,
+                                                 ref_values=ref_cdf_list,
+                                                 ww=ww,
+                                                 bin_centers=tmp_xseq)
+
+        # and finally write into complete PD data frame
+        OUT_overlap_pd[RowCol] = pd.DataFrame(dist_ks, index=y_times_tar_ww)
+
+        if crop:
+            # set values at (index <= XSPLIT and index > time_end - (ww/2)) to NaN
+            time_split_year = re.split('-', time_split)[0]
+            time_end_year = ts_index.max()
+            ind_crop_lw = OUT_overlap_pd.index <= int(time_split_year)
+            ind_crop_up = OUT_overlap_pd.index > int(time_end_year - int(ww / 2))
+            # OUT_overlap_pd_sign.ix[(ind_crop_lw | ind_crop_up)] = np.NaN
+            OUT_overlap_pd.ix[(ind_crop_lw | ind_crop_up)] = np.NaN
+
+    return OUT_overlap_pd #, OUT_overlap_pd_sign
+
+
+
+def calc_ks_2samp_distance(pd_dataframe, ww, time_start, time_split, time_end, crop=True):
+    """
+    Calculate the Hellinger distance between reference (divided at time_split) and target period
+
+    :param pd_dataframe: input pandas dataframe that is split into target and reference parts
+    :param ww: window width
+    :param precision: the number of points to evaluate the PDF
+    :param time_start: start of series
+    :param time_split: where to split the series
+    :param time_end: where to stop
+    :param crop: set values at half window size at the beginning and end of the time series to NaN
+    :return: the hellinger distances of each target series time step with respect to the reference, and the sign
+    """
+    #
+    # pd_dataframe = new_data_pd
+    # ww = WW
+    # precision = precision
+    # time_start = XMIN
+    # time_split = XSPLIT
+    # time_end = XMAX
+
+    # make copy .. some issues before without ...
+    ts_index = pd_dataframe.index
+    t_2d_ann_pd = copy(pd_dataframe)
+    OUT_overlap_pd = copy(pd.DataFrame(t_2d_ann_pd))
+    OUT_overlap_pd[:] = np.NaN
+    OUT_overlap_pd_sign = copy(pd.DataFrame(t_2d_ann_pd))
+    OUT_overlap_pd_sign[:] = np.NaN
+    # get they column keys (lat/lon)
+    RowCols = t_2d_ann_pd.keys()
+
+    # RowCol loop; go through the keys of pandas dataframe that are the row and column indices
+    for RowCol in RowCols:
+        # RowCol = u'0061.00113.0'
+        # all
+        y_all = t_2d_ann_pd[RowCol].values
+
+        # check if there is data; some pixels are only NA
+        if np.isnan(y_all).all():
+            continue
+
+        # check if every data record is 0
+        if (y_all == 0).all():
+            continue
+
+        # reference
+        y_ref = t_2d_ann_pd[RowCol].ix[time_start:time_split].values
+        if np.isnan(y_ref).all():
+            continue
+
+        # target
+        y_tar = t_2d_ann_pd[RowCol].ix[time_split:time_end].values
+
+        # target - half window
+        y_tar_ww = t_2d_ann_pd[RowCol].ix[str(int(time_split.split('-')[0]) - int(ww / 2)) + '-01-01':time_end]
+        y_times_tar_ww = t_2d_ann_pd[RowCol].ix[
+                         str(int(time_split.split('-')[0]) - int(ww / 2)) + '-01-01':time_end].index
+        if np.isnan(y_tar).all():
+            continue
+
+        # get the values for evaluation
+        ybnds = x_range(y_all, stretch=1)
+        # tmp_xseq = np.arange(ybnds[0], ybnds[1], (ybnds[2] / precision))
+
+        dist_ks, dist_ks_sign = calc_run_ks_2samp(time_seq=y_times_tar_ww,
+                                                 tar_values=y_tar_ww,
+                                                 ref_values=y_ref,
+                                                 ww=ww)
+
+        # and finally write into complete PD data frame
+        OUT_overlap_pd[RowCol] = pd.DataFrame(dist_ks, index=y_times_tar_ww)
+
+        if crop:
+            # set values at (index <= XSPLIT and index > time_end - (ww/2)) to NaN
+            time_split_year = re.split('-', time_split)[0]
+            time_end_year = ts_index.max()
+            ind_crop_lw = OUT_overlap_pd.index <= int(time_split_year)
+            ind_crop_up = OUT_overlap_pd.index > int(time_end_year - int(ww / 2))
+            # OUT_overlap_pd_sign.ix[(ind_crop_lw | ind_crop_up)] = np.NaN
+            OUT_overlap_pd.ix[(ind_crop_lw | ind_crop_up)] = np.NaN
+
+    return OUT_overlap_pd #, OUT_overlap_pd_sign
+
+
+def calc_overlap_hist(pd_dataframe, ww, precision, time_start, time_split, time_end, posneg=True, crop=True, autobin=False):
     """
     Calculate the Hellinger distance between reference (divided at time_split) and target period
 
@@ -508,16 +817,28 @@ def calc_overlap_hist(pd_dataframe, ww, precision, time_start, time_split, time_
     :param time_end: where to stop
     :param posneg: returns the signal of the hellinger shift as well
     :param crop: set values at half window size at the beginning and end of the time series to NaN
+    :param autobin: automatically determine bin number and bin sizes
     :return: the hellinger distances of each target series time step with respect to the reference, and the sign
     """
     #
     # # pd_dataframe = ds_ref
-    # pd_dataframe= pd_df
+    # # pd_dataframe= pd_df
+    # pd_dataframe = new_data_pd
     # ww = WW
     # precision = precision
     # time_start = XMIN
     # time_split = XSPLIT
     # time_end = XMAX
+    # posneg = True
+    # crop = True
+
+    # pd_dataframe = new_data_pd
+    # ww = WW
+    # precision = bin_n
+    # time_start = XMIN
+    # time_split = XSPLIT
+    # time_end = XMAX
+    # autobin = True
     # posneg = True
     # crop = True
 
@@ -562,10 +883,28 @@ def calc_overlap_hist(pd_dataframe, ww, precision, time_start, time_split, time_
         if np.isnan(y_tar).all():
             continue
 
-        # get the values for evaluation
         ybnds = x_range(y_all, stretch=1)
-        tmp_xseq = np.linspace(ybnds[0], ybnds[1], precision)
-        tmp_xseq_centers = tmp_xseq[0:-1] + ((ybnds[1] - ybnds[0]) / precision)
+        # get the values for evaluation
+        if autobin:
+            # for the autmoatic bin size determination:
+            # find the increment of the reference period and use this increment
+            # to generate a seq from min to max y value
+            # keep the bin centers from the automatically derived bins in np.histogram
+            _, tmp_bin_edge = np.histogram(y_ref)
+
+            tmp_bin_inc = np.diff(tmp_bin_edge).mean()
+            tmp_bin_cent = tmp_bin_edge[0:-1] + tmp_bin_inc
+
+            tmp_rest = (tmp_bin_cent[0] - ybnds[0]) % tmp_bin_inc
+            ybnds[0] = ybnds[0] + tmp_rest
+            ybnds[1] = ybnds[1] + tmp_rest
+
+            n_tmp_xseq = np.ceil(ybnds[2] / tmp_bin_inc).astype(int)
+            tmp_xseq = np.array([ybnds[0] + tmp_i*tmp_bin_inc for tmp_i in range(n_tmp_xseq)])
+            tmp_xseq_centers = tmp_xseq[0:-1] + tmp_bin_inc
+        else:
+            tmp_xseq = np.linspace(ybnds[0], ybnds[1], precision)
+            tmp_xseq_centers = tmp_xseq[0:-1] + ((ybnds[1] - ybnds[0]) / precision)
 
         # changes here to test use of Histogram function instead of KDE
         #
@@ -584,7 +923,8 @@ def calc_overlap_hist(pd_dataframe, ww, precision, time_start, time_split, time_
                                                                                  ref_values=ref_pdf_list, ww=ww,
                                                                                  tmp_xseq=tmp_xseq,
                                                                                  bin_centers=tmp_xseq_centers)
-
+            len(dist_hellinger)
+            len(dist_hellinger_sign)
             OUT_overlap_pd_sign[RowCol] = pd.DataFrame(dist_hellinger_sign, index=y_times_tar_ww)
         else:
             dist_hellinger = None
